@@ -192,17 +192,18 @@ export function Component() {
     }
   };
 
-  const addTask = async (taskTitle: string = newTaskTitle) => {
-    console.log('addTask called with taskTitle:', taskTitle);
-    if (taskTitle.trim()) {
+  const addTask = async (taskTitle?: string) => {
+    const titleToAdd = taskTitle || newTaskTitle;
+    console.log('addTask called with taskTitle:', titleToAdd);
+    if (titleToAdd.trim()) {
       try {
         console.log('Calling breakDownTask');
-        const brokenDownTasks = await breakDownTask(taskTitle);
+        const brokenDownTasks = await breakDownTask(titleToAdd);
         console.log('breakDownTask result:', brokenDownTasks);
         if (brokenDownTasks && brokenDownTasks.subtasks) {
           const newTask: Task = {
             id: Date.now(),
-            title: brokenDownTasks.task || taskTitle,
+            title: brokenDownTasks.task || titleToAdd,
             completed: false,
             subtasks: brokenDownTasks.subtasks.map((subtask: string, index: number) => ({
               id: Date.now() + index + 1,
@@ -215,13 +216,13 @@ export function Component() {
         } else {
           console.error('Invalid response from Groq API');
           // Fallback if API call fails or returns invalid data
-          setTasks(prevTasks => [...prevTasks, { id: Date.now(), title: taskTitle, completed: false, subtasks: [] }]);
+          setTasks(prevTasks => [...prevTasks, { id: Date.now(), title: titleToAdd, completed: false, subtasks: [] }]);
           setNewTaskTitle("");
         }
       } catch (error) {
         console.error('Error in addTask:', error);
         // Fallback if API call throws an error
-        setTasks(prevTasks => [...prevTasks, { id: Date.now(), title: taskTitle, completed: false, subtasks: [] }]);
+        setTasks(prevTasks => [...prevTasks, { id: Date.now(), title: titleToAdd, completed: false, subtasks: [] }]);
         setNewTaskTitle("");
       }
     }
@@ -301,7 +302,7 @@ export function Component() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={addTask}
+                  onClick={() => addTask()}
                 >
                   <PlusIcon className="w-4 h-4" />
                 </Button>
@@ -310,7 +311,7 @@ export function Component() {
           </div>
 
           {/* Task list */}
-          <div className="grid gap-4">
+          <div className="grid gap-2">
             {tasks.map(task => (
               <Card key={task.id} className="p-4 elevation-1 hover:elevation-2 transition-shadow duration-200">
                 <div className="flex items-center justify-between">
